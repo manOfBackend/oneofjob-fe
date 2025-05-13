@@ -8,11 +8,24 @@ import { RemixBrowser } from "@remix-run/react";
 import { startTransition, StrictMode } from "react";
 import { hydrateRoot } from "react-dom/client";
 
-startTransition(() => {
-  hydrateRoot(
-    document,
-    <StrictMode>
-      <RemixBrowser />
-    </StrictMode>
-  );
-});
+async function prepareApp() {
+  if (import.meta.env.DEV) {
+    try {
+      const { initMocks } = await import("./mocks");
+      await initMocks();
+    } catch (error) {
+      console.error('MSW 초기화 오류:', error);
+    }
+  }
+
+  startTransition(() => {
+    hydrateRoot(
+      document,
+      <StrictMode>
+        <RemixBrowser />
+      </StrictMode>
+    );
+  });
+}
+
+prepareApp();

@@ -14,6 +14,17 @@ import { renderToPipeableStream } from "react-dom/server";
 
 const ABORT_DELAY = 5_000;
 
+if (import.meta.env.DEV) {
+  try {
+    // 비동기적으로 MSW 서버 초기화
+    import('./mocks').then(({ initMocks }) => {
+      initMocks().catch(console.error);
+    });
+  } catch (error) {
+    console.error('MSW 서버 초기화 오류:', error);
+  }
+}
+
 export default function handleRequest(
   request: Request,
   responseStatusCode: number,

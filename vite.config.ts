@@ -21,4 +21,10 @@ export default defineConfig({
     }),
     tsconfigPaths(),
   ],
+  optimizeDeps: {
+    exclude: ["msw"],
+  },
+  server: {
+    cors: true,
+  },
 });
