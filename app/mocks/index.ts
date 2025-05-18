@@ -1,25 +1,31 @@
-const ENABLE_MOCKS = import.meta.env.VITE_ENABLE_MOCKS === 'true' && import.meta.env.DEV;
 
-console.log('🎭 MSW Configuration:', {
-  enableMocks: ENABLE_MOCKS,
-  isDev: import.meta.env.DEV,
-  envVar: import.meta.env.VITE_ENABLE_MOCKS,
-});
+import { shouldUseMSW } from "~/lib/env";
+
 
 export async function initMocks() {
-  // 프로덕션이거나 MSW가 비활성화된 경우 실행하지 않음
-  if (!ENABLE_MOCKS) {
-    console.log('🚫 MSW 비활성화됨 - 실제 API 사용');
+  if (!shouldUseMSW()) {
     return;
   }
 
-  if (typeof window === "undefined") {
-    // 서버 환경 (개발 모드에서만)
-    const { startServer } = await import("./server");
-    startServer();
-  } else {
-    // 브라우저 환경 (개발 모드에서만)
-    const { startMSW } = await import("./browser");
-    startMSW();
+  try {
+    if (typeof window === "undefined") {
+      const { startServer } = await import("./server");
+      startServer();
+    } else {
+      const { startMSW } = await import("./browser");
+      await startMSW();
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message.includes('Cannot resolve module') || 
+          error.message.includes('Failed to fetch')) {
+        console.info('🔄 MSW 모듈을 찾을 수 없어 실제 API를 사용합니다.');
+      } else {
+        console.warn("MSW 초기화 실패:", error.message);
+      }
+    } else {
+      console.warn("MSW 초기화 중 알 수 없는 오류:", error);
+    }
+    
   }
 }

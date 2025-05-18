@@ -26,7 +26,7 @@ export const handlers = [
 
     if (career) {
       filteredJobs = filteredJobs.filter((job) =>
-        job.careers.includes(career as any)
+        job.careers?.includes(career as any)
       );
     }
 
