@@ -5,10 +5,9 @@
   "type": "module",
   "packageManager": "pnpm@10.11.0",
   "scripts": {
-    "build": "remix vite:build",
-    "build:netlify": "pnpm run typecheck && pnpm run lint && pnpm run build",
+    "build": "NODE_ENV=production remix vite:build",
+    "preview": "NODE_ENV=production remix-serve ./build/server/index.js",
     "build:mocks": "ENABLE_MOCKS=true remix vite:build",
-    "preview": "remix-serve ./build/server/index.js",
     "install:frozen": "pnpm install --frozen-lockfile",
     "install:clean": "rm -rf node_modules && pnpm install",
     "dev": "remix vite:dev",
