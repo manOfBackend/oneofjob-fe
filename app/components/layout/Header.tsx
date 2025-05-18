@@ -19,3 +19,5 @@ export const Header = memo<HeaderProps>(({ totalCount, filteredCount }) => {
     </header>
   );
 });
+
+Header.displayName = 'Header';

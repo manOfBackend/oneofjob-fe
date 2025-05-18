@@ -31,3 +31,5 @@ export const SortControls = memo<SortControlsProps>(({ sortBy, onSortChange, cla
     </div>
   );
 });
+
+SortControls.displayName = 'SortControls';

@@ -9,9 +9,13 @@ import type { AppLoadContext, EntryContext } from '@remix-run/node';
 
 const ABORT_DELAY = 5_000;
 
-import('./mocks').then(async mswModule => {
-  await mswModule.initMocks();
-});
+void import('./mocks')
+  .then(async mswModule => {
+    await mswModule.initMocks();
+  })
+  .catch(error => {
+    console.warn('MSW 초기화 실패:', error);
+  });
 
 export default function handleRequest(
   request: Request,
@@ -19,7 +23,7 @@ export default function handleRequest(
   responseHeaders: Headers,
   remixContext: EntryContext,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  loadContext: AppLoadContext
+  _loadContext: AppLoadContext
 ) {
   return isbot(request.headers.get('user-agent') || '')
     ? handleBotRequest(request, responseStatusCode, responseHeaders, remixContext)

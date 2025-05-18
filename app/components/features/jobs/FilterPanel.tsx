@@ -49,7 +49,7 @@ export const FilterPanel = memo<FilterPanelProps>(
                         variant='primary'
                         onRemove={() => onToggleFilter('company', filters.keyword)}
                       >
-                        "{filters.keyword}"
+                        &quot;{filters.keyword}&quot;
                       </Badge>
                     )}
                     {filters.companies.map(company => (
@@ -134,6 +134,8 @@ export const FilterPanel = memo<FilterPanelProps>(
   }
 );
 
+FilterPanel.displayName = 'FilterPanel';
+
 interface FilterSectionProps {
   title: string;
   icon: 'building' | 'briefcase';
@@ -208,3 +210,5 @@ const FilterSection = memo<FilterSectionProps>(
     );
   }
 );
+
+FilterSection.displayName = 'FilterSection';

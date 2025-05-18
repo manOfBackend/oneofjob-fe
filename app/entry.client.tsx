@@ -3,17 +3,30 @@ import { startTransition, StrictMode } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 
 async function prepareApp() {
-  const { initMocks } = await import('./mocks');
-  await initMocks();
+  try {
+    const { initMocks } = await import('./mocks');
+    await initMocks();
 
-  startTransition(() => {
-    hydrateRoot(
-      document,
-      <StrictMode>
-        <RemixBrowser />
-      </StrictMode>
-    );
-  });
+    startTransition(() => {
+      hydrateRoot(
+        document,
+        <StrictMode>
+          <RemixBrowser />
+        </StrictMode>
+      );
+    });
+  } catch (error) {
+    console.error('애플리케이션 초기화 실패:', error);
+
+    startTransition(() => {
+      hydrateRoot(
+        document,
+        <StrictMode>
+          <RemixBrowser />
+        </StrictMode>
+      );
+    });
+  }
 }
 
-prepareApp();
+void prepareApp();

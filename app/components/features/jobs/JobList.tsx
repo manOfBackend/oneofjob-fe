@@ -67,3 +67,5 @@ export const JobList = memo<JobListProps>(
     );
   }
 );
+
+JobList.displayName = 'JobList';
