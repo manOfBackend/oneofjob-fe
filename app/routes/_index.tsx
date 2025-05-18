@@ -10,7 +10,7 @@ import { Header } from '~/components/layout/Header';
 import { Badge } from '~/components/ui/Badge';
 import { useJobFilters } from '~/hooks/useJobFilters';
 import { useJobSorting } from '~/hooks/useJobSorting';
-import { CompaniesApi, JobsApi } from '~/lib/api';
+import { getCachedCompanies, getCachedJobs, getCacheInfo } from '~/lib/cache.server';
 import { CAREER_OPTIONS } from '~/lib/types';
 
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node';
@@ -29,13 +29,17 @@ export const meta: MetaFunction = () => {
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
 
+  // URL에서 필터 파라미터 추출
   const companies = url.searchParams.getAll('company');
   const careers = url.searchParams.getAll('career') as CareerType[];
   const keyword = url.searchParams.get('keyword') || '';
 
-  const [allJobs, allCompanies] = await Promise.all([JobsApi.getAll(), CompaniesApi.getAll()]);
+  // 🚀 캐시된 데이터 사용 (Firebase 호출 최소화)
+  const startTime = performance.now();
+  const [allJobs, allCompanies] = await Promise.all([getCachedJobs(), getCachedCompanies()]);
+  const loadTime = performance.now() - startTime;
 
-  // Server-side filtering
+  // 서버에서 필터링 (클라이언트 번들 크기 최적화)
   let filteredJobs = allJobs;
 
   if (companies.length > 0) {
@@ -47,22 +51,31 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   if (keyword) {
+    const searchTerm = keyword.toLowerCase();
     filteredJobs = filteredJobs.filter(
       job =>
-        job.title.toLowerCase().includes(keyword.toLowerCase()) ||
-        job.company.toLowerCase().includes(keyword.toLowerCase())
+        job.title.toLowerCase().includes(searchTerm) ||
+        job.company.toLowerCase().includes(searchTerm)
     );
   }
 
+  // 캐시 정보와 성능 메트릭 포함
   return json({
     jobs: filteredJobs,
     allCompanies,
     totalCount: allJobs.length,
+    cacheInfo: getCacheInfo(),
+    performanceMetrics: {
+      loadTime: Math.round(loadTime),
+      timestamp: new Date().toISOString(),
+    },
   });
 }
 
 export default function IndexPage() {
-  const { jobs, allCompanies, totalCount } = useLoaderData<typeof loader>();
+  const { jobs, allCompanies, totalCount, cacheInfo, performanceMetrics } =
+    useLoaderData<typeof loader>();
+
   const navigation = useNavigation();
   const isLoading = navigation.state === 'loading';
 
@@ -78,6 +91,13 @@ export default function IndexPage() {
   return (
     <div className='min-h-screen bg-gray-50'>
       <Header totalCount={totalCount} filteredCount={sortedJobs.length} />
+
+      {/* 캐시 상태 표시 (개발 환경에서만) */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2'>
+          <CacheStatusBanner cacheInfo={cacheInfo} performanceMetrics={performanceMetrics} />
+        </div>
+      )}
 
       <main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
         <section className='mb-8 space-y-6'>
@@ -180,6 +200,37 @@ export default function IndexPage() {
           </Suspense>
         </section>
       </main>
+    </div>
+  );
+}
+
+// 캐시 상태 배너 컴포넌트 (개발용)
+function CacheStatusBanner({
+  cacheInfo,
+  performanceMetrics,
+}: {
+  cacheInfo: any;
+  performanceMetrics: any;
+}) {
+  return (
+    <div className='bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm'>
+      <div className='flex items-center justify-between'>
+        <div className='flex items-center gap-4'>
+          <span className='font-medium text-blue-900'>🚀 성능 정보</span>
+          <span className='text-blue-700'>
+            로드 시간: <strong>{performanceMetrics.loadTime}ms</strong>
+          </span>
+          <span className='text-blue-700'>
+            캐시: <strong>{cacheInfo.jobs.cached ? 'HIT' : 'MISS'}</strong>
+          </span>
+          <span className='text-blue-700'>
+            데이터: <strong>{cacheInfo.jobs.size}개 공고</strong>
+          </span>
+        </div>
+        <span className='text-blue-600 text-xs'>
+          다음 업데이트: {new Date(cacheInfo.nextUpdate).toLocaleString('ko-KR')}
+        </span>
+      </div>
     </div>
   );
 }
