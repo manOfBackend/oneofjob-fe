@@ -1,3 +1,3 @@
 export async function startMSW() {
-    return;
-  }
+  return;
+}

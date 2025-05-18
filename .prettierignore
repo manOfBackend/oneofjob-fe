@@ -1,0 +1,68 @@
+
+# 의존성
+node_modules/
+.pnp
+.pnp.js
+
+# 빌드 결과물
+dist/
+build/
+.next/
+.remix/
+
+# 캐시 디렉토리
+.cache/
+.parcel-cache/
+.eslintcache
+
+# 설정 파일 (이미 포맷팅됨)
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# 환경 변수
+.env
+.env.local
+.env.development
+.env.production
+
+# 로그 파일
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 런타임 데이터
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage 디렉토리
+coverage/
+.nyc_output/
+
+# Firebase
+.firebase/
+firebase-debug.log
+
+# VSCode 설정
+.vscode/
+
+# OS 생성 파일
+.DS_Store
+Thumbs.db
+
+# 임시 파일
+*.tmp
+*.temp
+
+# 자동 생성된 파일들
+public/mockServiceWorker.js
+public/build/
+
+# 브라우저용 MSW 파일
+public/mockServiceWorker.js
+
+# Vercel
+.vercel/

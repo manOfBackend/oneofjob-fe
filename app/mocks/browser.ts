@@ -1,7 +1,8 @@
+import { setupWorker } from 'msw/browser';
 
-import { setupWorker } from "msw/browser";
-import { handlers } from "./handlers";
-import { shouldUseMSW } from "~/lib/env";
+import { shouldUseMSW } from '~/lib/env';
+
+import { handlers } from './handlers';
 
 export const worker = setupWorker(...handlers);
 
@@ -10,12 +11,9 @@ export async function startMSW() {
   if (!shouldUseMSW()) {
     return;
   }
-  const options = { onUnhandledRequest: "bypass" as const };
+  const options = { onUnhandledRequest: 'bypass' as const };
 
   await worker.start(options);
 
-  console.log(
-    "%c[MSW] Mock Service Worker 활성화 됨",
-    "color:green;font-weight:bold;"
-  );
+  console.log('%c[MSW] Mock Service Worker 활성화 됨', 'color:green;font-weight:bold;');
 }

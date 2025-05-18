@@ -1,6 +1,7 @@
-import type { Job, JobFilter, RawJobFromServer } from "./types";
-import { normalizeJob } from "./types";
-import { getApiUrl, validateEnvironment } from "./env";
+import { getApiUrl, validateEnvironment } from './env';
+import { normalizeJob } from './types';
+
+import type { Job, JobFilter, RawJobFromServer } from './types';
 
 // 환경변수 검증 (앱 시작 시)
 validateEnvironment();
@@ -28,12 +29,9 @@ class HttpClient {
     this.defaultHeaders = config.headers;
   }
 
-  private async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
+  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
-    
+
     const config: RequestInit = {
       ...options,
       headers: {
@@ -99,11 +97,7 @@ class HttpClient {
  * API 에러 클래스
  */
 export class ApiError extends Error {
-  constructor(
-    message: string,
-    public code: string,
-    public details?: unknown
-  ) {
+  constructor(message: string, public code: string, public details?: unknown) {
     super(message);
     this.name = 'ApiError';
   }
@@ -153,7 +147,7 @@ export const JobsApi = {
   async getAll(filter?: JobFilter): Promise<Job[]> {
     const params = convertFilterToQueryParams(filter);
     const rawJobs = await httpClient.get<RawJobFromServer[]>('/jobs', params);
-    
+
     // 서버 데이터를 클라이언트용으로 정규화
     return rawJobs.map(normalizeJob);
   },
@@ -170,10 +164,10 @@ export const JobsApi = {
    * 회사별 채용 공고 조회
    */
   async getByCompany(company: string): Promise<Job[]> {
-    return this.getAll({ 
-      companies: [company], 
-      careers: [], 
-      keyword: '' 
+    return this.getAll({
+      companies: [company],
+      careers: [],
+      keyword: '',
     });
   },
 
@@ -181,10 +175,10 @@ export const JobsApi = {
    * 경력 타입별 채용 공고 조회
    */
   async getByCareer(career: string): Promise<Job[]> {
-    return this.getAll({ 
-      companies: [], 
-      careers: [career as any], 
-      keyword: '' 
+    return this.getAll({
+      companies: [],
+      careers: [career as any],
+      keyword: '',
     });
   },
 };
@@ -201,9 +195,9 @@ export const CompaniesApi = {
       return await httpClient.get<string[]>('/companies');
     } catch (error) {
       console.warn('Failed to fetch companies from server, using fallback:', error);
-      
+
       // 실패 시 하드코딩된 회사명 목록 리턴
-      return ["NAVER", "KAKAO", "LINE"];
+      return ['NAVER', 'KAKAO', 'LINE'];
     }
   },
 };

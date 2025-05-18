@@ -1,6 +1,8 @@
 import { memo } from 'react';
-import type { SortOption, SortOptionConfig } from '~/lib/types';
+
 import { SORT_OPTIONS } from '~/lib/types';
+
+import type { SortOption, SortOptionConfig } from '~/lib/types';
 
 interface SortControlsProps {
   sortBy: SortOption;
@@ -8,14 +10,10 @@ interface SortControlsProps {
   className?: string;
 }
 
-export const SortControls = memo<SortControlsProps>(({
-  sortBy,
-  onSortChange,
-  className = '',
-}) => {
+export const SortControls = memo<SortControlsProps>(({ sortBy, onSortChange, className = '' }) => {
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+      <div className='flex gap-1 bg-gray-100 rounded-lg p-1'>
         {SORT_OPTIONS.map((option: SortOptionConfig) => (
           <button
             key={option.value}

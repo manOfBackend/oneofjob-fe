@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { delay, http, HttpResponse } from "msw";
-import { mockCompanies, mockJobs } from "./data";
+import { delay, http, HttpResponse } from 'msw';
+
+import { mockCompanies, mockJobs } from './data';
 
 // API 경로 설정
-const API_URL = "http://localhost:3000";
+const API_URL = 'http://localhost:3000';
 
 export const handlers = [
   // 모든 채용공고 조회
@@ -12,32 +13,28 @@ export const handlers = [
     await delay(1000);
 
     const url = new URL(request.url);
-    const company = url.searchParams.get("company");
-    const career = url.searchParams.get("career");
-    const employmentType = url.searchParams.get("employmentType");
-    const title = url.searchParams.get("title");
+    const company = url.searchParams.get('company');
+    const career = url.searchParams.get('career');
+    const employmentType = url.searchParams.get('employmentType');
+    const title = url.searchParams.get('title');
 
     // 필터링 로직
     let filteredJobs = [...mockJobs];
 
     if (company) {
-      filteredJobs = filteredJobs.filter((job) => job.company === company);
+      filteredJobs = filteredJobs.filter(job => job.company === company);
     }
 
     if (career) {
-      filteredJobs = filteredJobs.filter((job) =>
-        job.careers?.includes(career as any)
-      );
+      filteredJobs = filteredJobs.filter(job => job.careers?.includes(career as any));
     }
 
     if (employmentType) {
-      filteredJobs = filteredJobs.filter(
-        (job) => job.employmentType === employmentType
-      );
+      filteredJobs = filteredJobs.filter(job => job.employmentType === employmentType);
     }
 
     if (title) {
-      filteredJobs = filteredJobs.filter((job) =>
+      filteredJobs = filteredJobs.filter(job =>
         job.title.toLowerCase().includes(title.toLowerCase())
       );
     }
@@ -51,7 +48,7 @@ export const handlers = [
     await delay(500);
 
     const { id } = params;
-    const job = mockJobs.find((job) => job.id === id);
+    const job = mockJobs.find(job => job.id === id);
 
     if (!job) {
       return new HttpResponse(null, { status: 404 });

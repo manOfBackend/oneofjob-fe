@@ -1,13 +1,12 @@
-
 /**
  * 채용 공고 경력 타입
  */
-export type CareerType = "신입" | "경력" | "인턴";
+export type CareerType = '신입' | '경력' | '인턴';
 
 /**
  * 채용 공고 고용 형태
  */
-export type EmploymentType = "정규직" | "비정규직";
+export type EmploymentType = '정규직' | '비정규직';
 
 /**
  * Firebase Timestamp 타입
@@ -46,8 +45,8 @@ export interface Job {
   careers: CareerType[];
   employmentType: EmploymentType;
   startDate?: string; // ISO 문자열 형태로 정규화
-  endDate?: string;   // ISO 문자열 형태로 정규화
-  period?: string;    // 원본 period 필드 (예: "채용 마감 기한 없음")
+  endDate?: string; // ISO 문자열 형태로 정규화
+  period?: string; // 원본 period 필드 (예: "채용 마감 기한 없음")
   url: string;
 }
 
@@ -131,9 +130,9 @@ export type BadgeSize = 'sm' | 'md' | 'lg';
  * 경력 타입별 배지 variant 매핑
  */
 export const CAREER_BADGE_VARIANTS: Record<CareerType, BadgeVariant> = {
-  '신입': 'success',
-  '경력': 'primary',
-  '인턴': 'warning',
+  신입: 'success',
+  경력: 'primary',
+  인턴: 'warning',
 };
 
 /**
@@ -153,18 +152,20 @@ export const CAREER_OPTIONS: CareerType[] = ['신입', '경력', '인턴'];
 /**
  * Firebase Timestamp를 Date 객체로 변환
  */
-export function convertFirebaseTimestamp(timestamp: FirebaseTimestamp | string | undefined): Date | undefined {
+export function convertFirebaseTimestamp(
+  timestamp: FirebaseTimestamp | string | undefined
+): Date | undefined {
   if (!timestamp) return undefined;
-  
+
   if (typeof timestamp === 'string') {
     return new Date(timestamp);
   }
-  
+
   // Firebase Timestamp 객체인 경우
   if (typeof timestamp === 'object' && '_seconds' in timestamp) {
     return new Date(timestamp._seconds * 1000 + timestamp._nanoseconds / 1000000);
   }
-  
+
   return undefined;
 }
 
