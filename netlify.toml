@@ -1,0 +1,65 @@
+[build]
+  # pnpm 빌드 명령어
+  command = "pnpm run build"
+  
+  # 배포할 디렉토리 (Remix 빌드 결과물)
+  publish = "build/client"
+  
+  # pnpm 환경 설정
+  [build.environment]
+    NODE_VERSION = "20"
+    # pnpm 명시적 지정
+    NPM_FLAGS = "--version"  # npm 사용 방지
+    PNPM_FLAGS = "--frozen-lockfile --prefer-offline"
+    # pnpm 캐시 최적화
+    PNPM_CACHE_FOLDER = ".pnpm-cache"
+
+# 빌드 명령어를 pnpm으로 오버라이드
+[build.processing]
+  skip_processing = false
+
+# pnpm 설치 명령어 커스터마이징
+[build.command_origin]
+  value = "config"
+
+# SPA 라우팅을 위한 리다이렉트 설정
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# 보안 헤더 설정
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline';"
+
+# 정적 자산 캐싱 최적화
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# pnpm store 캐싱을 위한 설정
+[[headers]]
+  for = "/.pnpm/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+# 이미지 최적화
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+# API 프록시 설정 (CORS 문제 해결용)
+[[redirects]]
+  from = "/api/*"
+  to = "https://port-0-web-service-lymokcma5cd8917f.sel5.cloudtype.app/:splat"
+  status = 200
+  force = true
+  headers = {X-From = "Netlify"}
