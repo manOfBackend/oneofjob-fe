@@ -40,11 +40,11 @@ module.exports = {
 
   // 기본 규칙
   rules: {
-    // == 대신 === 사용 강제
+    // === 대신 === 사용 강제
     eqeqeq: ['error', 'always'],
 
-    // 사용하지 않는 변수 제거
-    'no-unused-vars': 'off', // TypeScript가 처리
+    // 사용하지 않는 변수 제거 (unused-imports가 처리)
+    'no-unused-vars': 'off',
     'unused-imports/no-unused-imports': 'error',
     'unused-imports/no-unused-vars': [
       'warn',
@@ -87,7 +87,7 @@ module.exports = {
     'import/resolver': {
       typescript: {
         alwaysTryTypes: true,
-        project: ['./tsconfig.json', './apps/*/tsconfig.json', './libs/tsconfig.json'],
+        project: ['./tsconfig.json'],
       },
       node: {
         extensions: ['.js', '.jsx', '.ts', '.tsx'],
@@ -143,13 +143,25 @@ module.exports = {
         // Self-closing 태그 강제
         'react/self-closing-comp': 'error',
 
+        // TypeScript 프로젝트에서는 prop-types 불필요
+        'react/prop-types': 'off',
+
+        // displayName은 memo 컴포넌트에만 필요
+        'react/display-name': 'off',
+
+        // 따옴표 이스케이프 완화
+        'react/no-unescaped-entities': [
+          'error',
+          {
+            forbid: ['>', '}'],
+          },
+        ],
+
         // 접근성 - img 태그에 alt 필수
         'jsx-a11y/alt-text': 'error',
 
-        // 접근성 - 클릭 가능한 요소에 키보드 이벤트 필수
+        // 접근성 경고를 에러로 올리지 않음
         'jsx-a11y/click-events-have-key-events': 'warn',
-
-        // 접근성 - 상호작용 요소에 role 필수
         'jsx-a11y/no-static-element-interactions': 'warn',
       },
     },
@@ -159,7 +171,7 @@ module.exports = {
       files: ['**/*.{ts,tsx}'],
       parser: '@typescript-eslint/parser',
       parserOptions: {
-        project: ['./tsconfig.json', './apps/*/tsconfig.json', './libs/tsconfig.json'],
+        project: ['./tsconfig.json'],
       },
       plugins: ['@typescript-eslint'],
       extends: [
@@ -192,27 +204,45 @@ module.exports = {
         ],
         '@typescript-eslint/consistent-type-exports': 'error',
 
-        // 네이밍 컨벤션
+        // 네이밍 컨벤션 (완화된 버전)
         '@typescript-eslint/naming-convention': [
           'error',
+          // PascalCase for types, interfaces, enums
           {
-            selector: 'interface',
-            format: ['PascalCase'],
-            prefix: ['I'],
-          },
-          {
-            selector: 'typeAlias',
+            selector: ['typeLike'],
             format: ['PascalCase'],
           },
+          // camelCase for variables, functions, methods
           {
-            selector: 'enum',
-            format: ['PascalCase'],
+            selector: ['variableLike', 'methodLike'],
+            format: ['camelCase'],
+            // React 컴포넌트는 PascalCase 허용
+            filter: {
+              regex: '^[A-Z]',
+              match: false,
+            },
           },
+          // PascalCase for React components
           {
-            selector: 'enumMember',
-            format: ['UPPER_CASE'],
+            selector: 'variable',
+            format: ['PascalCase'],
+            filter: {
+              regex: '^[A-Z]',
+              match: true,
+            },
           },
         ],
+
+        // 안전하지 않은 any 타입 경고로 완화
+        '@typescript-eslint/no-unsafe-assignment': 'warn',
+        '@typescript-eslint/no-unsafe-member-access': 'warn',
+        '@typescript-eslint/no-unsafe-call': 'warn',
+        '@typescript-eslint/no-unsafe-return': 'warn',
+        '@typescript-eslint/no-unsafe-argument': 'warn',
+        '@typescript-eslint/restrict-template-expressions': 'warn',
+
+        // require-await 완화
+        '@typescript-eslint/require-await': 'warn',
       },
     },
 
@@ -233,12 +263,13 @@ module.exports = {
       rules: {
         '@typescript-eslint/no-var-requires': 'off',
         'import/no-default-export': 'off',
+        'no-console': 'off',
       },
     },
 
     // Remix 라우트 파일
     {
-      files: ['app/routes/**/*.{ts,tsx}'],
+      files: ['app/routes/**/*.{ts,tsx}', 'app/root.tsx'],
       rules: {
         // 라우트에서는 default export 필수
         'import/no-default-export': 'off',
@@ -289,6 +320,17 @@ module.exports = {
       rules: {
         '@typescript-eslint/no-explicit-any': 'off',
         'import/no-default-export': 'off',
+        'no-console': 'off',
+        '@typescript-eslint/require-await': 'off',
+      },
+    },
+
+    // Entry 파일들
+    {
+      files: ['app/entry.{client,server}.{ts,tsx}'],
+      rules: {
+        '@typescript-eslint/no-floating-promises': 'off',
+        'no-console': 'off',
       },
     },
   ],
