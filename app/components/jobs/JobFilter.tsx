@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Form, useNavigation, useSearchParams } from '@remix-run/react';
 import type { JobFilter } from '~/lib/types';
-import Button from '~/components/common/Button';
+import Button from '~/components/ui/Button';
 
 interface JobFilterProps {
   companies: string[];

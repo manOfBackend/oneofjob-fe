@@ -1,7 +1,7 @@
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
-import Button from '~/components/common/Button';
+import Button from '~/components/ui/Button';
 import MainLayout from '~/components/layout/MainLayout';
 import { JobsApi } from '~/lib/api';
 
