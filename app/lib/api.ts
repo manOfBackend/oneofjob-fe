@@ -1,107 +1,146 @@
-import type { Job, JobFilter } from "./types";
+import type { Job, JobFilter, RawJobFromServer } from "./types";
+import { normalizeJob } from "./types";
+import { getApiUrl, validateEnvironment } from "./env";
+
+// 환경변수 검증 (앱 시작 시)
+validateEnvironment();
 
 /**
- * API 환경 설정
- */
-const getApiBaseUrl = (): string => {
-
-  if (import.meta.env.VITE_ENABLE_MOCKS === 'true' && import.meta.env.DEV) {
-    return "http://localhost:3000";
-  }
-
-  const apiUrl = import.meta.env.VITE_API_URL;
-  
-  if (apiUrl) {
-    return apiUrl;
-  }
-  
-  return "";
-};
-
-const API_BASE_URL = getApiBaseUrl();
-
-/**
- * API 요청 설정
+ * API 클라이언트 설정
  */
 const API_CONFIG = {
-  timeout: parseInt(import.meta.env.VITE_API_TIMEOUT || "10000", 10),
+  baseURL: getApiUrl(),
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
   },
-};
+} as const;
 
 /**
- * API 요청 헬퍼 함수
+ * HTTP 클라이언트 클래스
  */
-async function apiRequest<T>(
-  endpoint: string, 
-  options: RequestInit = {}
-): Promise<T> {
-  const url = API_BASE_URL ? `${API_BASE_URL}${endpoint}` : endpoint;
-  
-  const requestOptions: RequestInit = {
-    ...options,
-    headers: {
-      ...API_CONFIG.headers,
-      ...options.headers,
-    },
-    // 타임아웃 설정 (fetch에는 기본 타임아웃이 없음)
-    signal: AbortSignal.timeout(API_CONFIG.timeout),
-  };
+class HttpClient {
+  private baseURL: string;
+  private defaultHeaders: Record<string, string>;
 
-  try {
-    const response = await fetch(url, requestOptions);
+  constructor(config: typeof API_CONFIG) {
+    this.baseURL = config.baseURL;
+    this.defaultHeaders = config.headers;
+  }
 
-    if (!response.ok) {
-      // HTTP 에러 상태 처리
-      const errorMessage = `API 요청 실패: ${response.status} ${response.statusText}`;
-      console.error(errorMessage, { url, status: response.status });
-      throw new Error(errorMessage);
-    }
-
-    // JSON 응답 파싱
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    // 네트워크 에러, 타임아웃 등 처리
-    if (error instanceof Error) {
-      console.error(`API 요청 오류 (${url}):`, error.message);
-      throw error;
-    }
+  private async request<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<T> {
+    const url = `${this.baseURL}${endpoint}`;
     
-    throw new Error(`알 수 없는 API 오류가 발생했습니다: ${endpoint}`);
+    const config: RequestInit = {
+      ...options,
+      headers: {
+        ...this.defaultHeaders,
+        ...options.headers,
+      },
+    };
+
+    try {
+      const response = await fetch(url, config);
+
+      if (!response.ok) {
+        throw new ApiError(
+          `HTTP ${response.status}: ${response.statusText}`,
+          response.status.toString(),
+          { url, config }
+        );
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+
+      // 네트워크 에러 등
+      throw new ApiError(
+        `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        'NETWORK_ERROR',
+        { url, config, originalError: error }
+      );
+    }
+  }
+
+  async get<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
+    const url = params ? `${endpoint}?${new URLSearchParams(params)}` : endpoint;
+    return this.request<T>(url);
+  }
+
+  async post<T>(endpoint: string, body: unknown): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  async put<T>(endpoint: string, body: unknown): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  }
+
+  async delete<T>(endpoint: string): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'DELETE',
+    });
   }
 }
 
 /**
+ * API 에러 클래스
+ */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public code: string,
+    public details?: unknown
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
+/**
+ * HTTP 클라이언트 인스턴스
+ */
+const httpClient = new HttpClient(API_CONFIG);
+
+/**
  * 필터 쿼리 파라미터로 변환
  */
-function convertFilterToQueryParams(filter?: JobFilter): string {
-  if (!filter) return "";
+function convertFilterToQueryParams(filter?: JobFilter): Record<string, string> {
+  if (!filter) return {};
 
-  const params = new URLSearchParams();
+  const params: Record<string, string> = {};
 
-  // companies 배열 처리
-  if (filter.companies && filter.companies.length > 0) {
-    filter.companies.forEach(company => {
-      params.append('company', company);
+  if (filter.keyword) {
+    params.keyword = filter.keyword;
+  }
+
+  if (filter.companies.length > 0) {
+    // 여러 값 처리 - API 설계에 따라 조정 필요
+    filter.companies.forEach((company, index) => {
+      params[`company[${index}]`] = company;
     });
   }
 
-  // careers 배열 처리  
-  if (filter.careers && filter.careers.length > 0) {
-    filter.careers.forEach(career => {
-      params.append('career', career);
+  if (filter.careers.length > 0) {
+    // 여러 값 처리 - API 설계에 따라 조정 필요
+    filter.careers.forEach((career, index) => {
+      params[`career[${index}]`] = career;
     });
   }
 
-  // keyword 처리
-  if (filter.keyword && filter.keyword.trim()) {
-    params.append('keyword', filter.keyword.trim());
-  }
-
-  return params.toString();
+  return params;
 }
 
 /**
@@ -112,24 +151,30 @@ export const JobsApi = {
    * 모든 채용 공고 조회
    */
   async getAll(filter?: JobFilter): Promise<Job[]> {
-    const queryParams = convertFilterToQueryParams(filter);
-    const endpoint = `/jobs${queryParams ? `?${queryParams}` : ""}`;
-
-    return apiRequest<Job[]>(endpoint);
+    const params = convertFilterToQueryParams(filter);
+    const rawJobs = await httpClient.get<RawJobFromServer[]>('/jobs', params);
+    
+    // 서버 데이터를 클라이언트용으로 정규화
+    return rawJobs.map(normalizeJob);
   },
 
   /**
    * 특정 채용 공고 조회
    */
   async getById(id: string): Promise<Job> {
-    return apiRequest<Job>(`/jobs/${id}`);
+    const rawJob = await httpClient.get<RawJobFromServer>(`/jobs/${id}`);
+    return normalizeJob(rawJob);
   },
 
   /**
    * 회사별 채용 공고 조회
    */
   async getByCompany(company: string): Promise<Job[]> {
-    return this.getAll({ companies: [company], careers: [], keyword: "" });
+    return this.getAll({ 
+      companies: [company], 
+      careers: [], 
+      keyword: '' 
+    });
   },
 
   /**
@@ -139,7 +184,7 @@ export const JobsApi = {
     return this.getAll({ 
       companies: [], 
       careers: [career as any], 
-      keyword: "" 
+      keyword: '' 
     });
   },
 };
@@ -150,47 +195,29 @@ export const JobsApi = {
 export const CompaniesApi = {
   /**
    * 지원하는 모든 회사 목록 조회
-   * TODO: 백엔드에서 실제 엔드포인트 구현되면 수정
    */
   async getAll(): Promise<string[]> {
     try {
-      // 실제 API 엔드포인트가 있다면 사용
-      // return apiRequest<string[]>('/companies');
-      
-      // 현재는 하드코딩된 회사명 목록 리턴
-      return ["NAVER", "KAKAO", "LINE", "WOOWAHAN"];
+      return await httpClient.get<string[]>('/companies');
     } catch (error) {
-      console.warn('회사 목록 API 호출 실패, 기본값 사용:', error);
-      return ["NAVER", "KAKAO", "LINE", "WOOWAHAN"];
+      console.warn('Failed to fetch companies from server, using fallback:', error);
+      
+      // 실패 시 하드코딩된 회사명 목록 리턴
+      return ["NAVER", "KAKAO", "LINE"];
     }
   },
 };
 
 /**
- * API 상태 확인
+ * API 클라이언트 전체 내보내기
  */
-export const HealthApi = {
-  /**
-   * API 서버 상태 확인
-   */
-  async check(): Promise<{ status: string; timestamp: string }> {
-    try {
-      return apiRequest<{ status: string; timestamp: string }>('/health');
-    } catch (error) {
-      console.warn('Health check 실패:', error);
-      return { 
-        status: 'unknown', 
-        timestamp: new Date().toISOString() 
-      };
-    }
-  },
-};
+export const api = {
+  jobs: JobsApi,
+  companies: CompaniesApi,
+} as const;
 
-// 디버깅용: 현재 API 설정 로그
+// 디버깅용 - 개발 환경에서만
 if (import.meta.env.DEV) {
-  console.log('🔗 API Configuration:', {
-    baseUrl: API_BASE_URL,
-    enableMocks: import.meta.env.VITE_ENABLE_MOCKS,
-    timeout: API_CONFIG.timeout,
-  });
+  (globalThis as any).__api__ = api;
+  console.log('🔗 API client initialized:', API_CONFIG.baseURL);
 }

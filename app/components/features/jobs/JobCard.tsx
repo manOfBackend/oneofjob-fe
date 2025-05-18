@@ -1,3 +1,4 @@
+
 import { memo } from 'react';
 import { Badge } from '~/components/ui/Badge';
 import type { Job } from '~/lib/types';
@@ -10,7 +11,7 @@ interface JobCardProps {
 
 export const JobCard = memo<JobCardProps>(({ job, className = '' }) => {
   const calculateRemainingDays = (endDateString?: string) => {
-    if (!endDateString) return '상시채용';
+    if (!endDateString) return null;
     
     const endDate = new Date(endDateString);
     const today = new Date();
@@ -23,7 +24,7 @@ export const JobCard = memo<JobCardProps>(({ job, className = '' }) => {
   };
 
   const formatDate = (dateString?: string) => {
-    if (!dateString) return '미정';
+    if (!dateString) return null;
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('ko-KR', {
       year: 'numeric',
@@ -32,7 +33,39 @@ export const JobCard = memo<JobCardProps>(({ job, className = '' }) => {
     }).format(date);
   };
 
-  const remainingDays = calculateRemainingDays(job.endDate);
+  // period가 있는 경우 period를 우선 사용, 없으면 날짜 계산
+  const getDeadlineInfo = () => {
+    if (job.period) {
+      return job.period;
+    }
+    
+    const remainingDays = calculateRemainingDays(job.endDate);
+    return remainingDays || '상시채용';
+  };
+
+  // 기간 정보 표시
+  const getDateRangeInfo = () => {
+    if (job.period) {
+      // period가 있는 경우 period 정보만 표시
+      return job.period;
+    }
+    
+    const startDate = formatDate(job.startDate);
+    const endDate = formatDate(job.endDate);
+    
+    if (startDate && endDate) {
+      return `${startDate} ~ ${endDate}`;
+    } else if (startDate) {
+      return `${startDate}부터`;
+    } else if (endDate) {
+      return `${endDate}까지`;
+    } else {
+      return '상시채용';
+    }
+  };
+
+  const deadlineInfo = getDeadlineInfo();
+  const dateRangeInfo = getDateRangeInfo();
   const isExpired = job.endDate && new Date(job.endDate) < new Date();
 
   return (
@@ -79,13 +112,17 @@ export const JobCard = memo<JobCardProps>(({ job, className = '' }) => {
               <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                 isExpired
                   ? 'bg-red-100 text-red-800'
+                  : deadlineInfo === '상시채용' || job.period?.includes('채용 마감 기한 없음')
+                  ? 'bg-green-100 text-green-800'
                   : 'bg-blue-100 text-blue-800'
               }`}>
-                {remainingDays}
+                {deadlineInfo}
               </div>
               <div className="text-sm text-gray-500 mt-2 space-y-1">
-                <div>기간: {formatDate(job.startDate)} ~ {formatDate(job.endDate)}</div>
-                <div>등록: {formatDate(job.startDate)}</div>
+                <div>기간: {dateRangeInfo}</div>
+                {job.startDate && (
+                  <div>등록: {formatDate(job.startDate)}</div>
+                )}
               </div>
             </div>
           </div>
