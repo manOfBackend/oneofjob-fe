@@ -3,3 +3,8 @@ node_modules
 /.cache
 /build
 .env
+.env.local
+.env.development
+.env.production
+# Local Netlify folder
+.netlify
