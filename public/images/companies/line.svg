@@ -1,0 +1,12 @@
+<!-- LINE 로고 - 초록색 계열 -->
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 배경 원 -->
+  <circle cx="32" cy="32" r="32" fill="#00b900"/>
+  
+  <!-- L 모양의 추상적 디자인 -->
+  <path d="M20 20 L28 20 L28 36 L44 36 L44 44 L20 44 Z" fill="white"/>
+  
+  <!-- 말풍선 모양 추가 -->
+  <circle cx="38" cy="26" r="4" fill="white" opacity="0.8"/>
+  <circle cx="42" cy="22" r="2" fill="white" opacity="0.6"/>
+</svg>

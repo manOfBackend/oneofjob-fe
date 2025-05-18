@@ -1,0 +1,8 @@
+<!-- KAKAO 로고 - 노란색 계열 -->
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 배경 원 -->
+  <circle cx="32" cy="32" r="32" fill="#fee500"/>
+  
+  <!-- K 모양의 추상적 디자인 -->
+  <path d="M20 20 L28 20 L28 28 L36 20 L44 20 L34 30 L44 44 L36 44 L28 32 L28 44 L20 44 Z" fill="#3c1e1e"/>
+</svg>

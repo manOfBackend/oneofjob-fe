@@ -1,0 +1,8 @@
+<!-- COUPANG 로고 - 보라색 계열 -->
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 배경 원 -->
+  <circle cx="32" cy="32" r="32" fill="#5c2d91"/>
+  
+  <!-- C 모양의 추상적 디자인 -->
+  <path d="M44 24 C44 20 40 16 32 16 S20 20 20 32 S24 48 32 48 C38 48 42 45 44 40 L36 38 C35 42 34 42 32 42 C28 42 26 38 26 32 S28 22 32 22 C35 22 36 24 36 26 L44 24 Z" fill="white"/>
+</svg>

@@ -1,0 +1,13 @@
+<!-- BAEMIN (우아한형제들) 로고 - 민트색 계열 -->
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 배경 원 -->
+  <circle cx="32" cy="32" r="32" fill="#2ac1bc"/>
+  
+  <!-- 배달 박스/그릇을 연상시키는 디자인 -->
+  <rect x="18" y="22" width="28" height="20" rx="4" fill="white"/>
+  <circle cx="24" cy="28" r="2" fill="#2ac1bc"/>
+  <circle cx="32" cy="28" r="2" fill="#2ac1bc"/>
+  <circle cx="40" cy="28" r="2" fill="#2ac1bc"/>
+  <rect x="22" y="34" width="20" height="2" rx="1" fill="#2ac1bc"/>
+  <rect x="26" y="38" width="12" height="2" rx="1" fill="#2ac1bc"/>
+</svg>
